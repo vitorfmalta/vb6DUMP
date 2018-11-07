@@ -1,0 +1,3 @@
+
+'ANOmesDIAhoraMINUTOsegundos
+'MsgBox Format(Now, "YYYYMMDDhhmmss")

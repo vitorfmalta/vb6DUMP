@@ -1,0 +1,8 @@
+'remover Controle Pelo nome
+
+    Dim tempCtrl As Control
+    For Each tempCtrl In Me.Controls
+        If tempCtrl.Name = "nome_procurado" Then
+            Me.Controls.Remove(tempCtrl)
+        End If
+    Next tempCtrl

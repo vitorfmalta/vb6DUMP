@@ -1,0 +1,108 @@
+Private Function GravaTxtRecordset(RS As ADODB.Recordset, Optional nome As String = "", Optional listaCampos = "") As String
+  Dim x     As Long
+  Dim linha As String
+  Dim delimitador As String
+  linha = ""
+  delimitador = ","
+  If Trim(listaCampos) <> "" Then
+    For x = 0 To RS.Fields.Count - 1
+      If InStr(1, listaCampos, RS.Fields(x).Name) <> 0 Then linha = linha & RS.Fields(x).Name & delimitador
+    Next
+  Else
+    For x = 0 To RS.Fields.Count - 1
+      linha = linha & RS.Fields(x).Name & delimitador
+    Next
+  End If
+  
+  x = 0
+  Do While x >= 0
+    If Dir("C:\RS" & nome & x & ".csv") <> "" Then
+      x = x + 1
+    Else
+      Open "C:\RS" & nome & x & ".csv" For Output As #1
+      Exit Do
+    End If
+  Loop
+  GravaTxtRecordset = "RS" & nome & x & ".csv"
+  
+  Print #1, linha
+  If RS.RecordCount = 0 Then Close #1: Exit Function 'grava cabeçalho mesmo se nao houver registros
+  RS.MoveFirst
+  If listaCampos <> "" Then
+    While RS.EOF = False
+      linha = ""
+      For x = 0 To RS.Fields.Count - 1
+        If InStr(1, listaCampos, RS.Fields(x).Name) <> 0 Then
+          If RS.Fields(x).Value = "" Then
+            linha = linha & delimitador
+          Else
+            linha = linha & Chr(34) & RS.Fields(x).Value & Chr(34) & delimitador
+          End If
+        End If
+      Next
+      Print #1, linha
+      RS.MoveNext
+    Wend
+  Else
+    While RS.EOF = False
+      linha = ""
+      For x = 0 To rs.Fields.Count - 1
+        If rs.Fields(x).Value = "" Then
+          linha = linha & delimitador
+        Else
+          linha = linha & Chr(34) & replace(rs.Fields(x).Value, delimitador,"|") & Chr(34) & delimitador
+        End If
+      Next
+      Print #1, linha
+      RS.MoveNext
+    Wend
+  End If
+  Close #1
+  RS.MoveFirst
+End Function
+
+Private Sub GravarLog(linha As String)
+  Open "c:\meulog.txt" For Append As #1
+  Print #1, linha
+  Close #1
+End Sub
+
+'usa pasta como BD e arquivos CSV como tabelas
+Private Function ExecutarComandoPesquisa(sql As String) As ADODB.Recordset
+  On Error GoTo tratarerro
+  Dim strCaminho As String
+  Dim oConn As ADODB.Connection
+  Dim oCommand As ADODB.Command
+  'caminho do SCHEMA
+  strCaminho = "c:\"
+  Set oConn = New ADODB.Connection
+  Set oCommand = New ADODB.Command
+  oConn.Open "Provider=Microsoft.Jet.OLEDB.4.0;" & _
+             "Data Source=" & strCaminho & ";" & _
+             "Extended Properties=""text;HDR=YES;FMT=Delimited()"""
+  Set oCommand.ActiveConnection = oConn
+  oCommand.CommandText = sql
+  Set ExecutarComandoPesquisa = oCommand.Execute
+  Exit Function
+tratarerro:
+  MsgBox Err.Number & "-" & Err.Description
+End Function
+
+
+'--------------------------------------------
+rs.Save "e.xml", adPersistXML
+
+
+
+'dando erro com rs grande....
+Public Function CopiarRecordSet(rsOrigem As ADODB.Recordset) As ADODB.Recordset
+  On Error Resume Next
+  Dim rsCopia As New ADODB.Recordset
+  Dim oStm As New ADODB.Stream
+  If rsOrigem Is Nothing Then Exit Function
+  oStm.Open
+  rsOrigem.Save oStm, adPersistXML
+  rsCopia.Open oStm
+  Set CopiarRecordSet = rsCopia
+  Set rsCopia = Nothing
+End Function

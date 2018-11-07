@@ -1,0 +1,6 @@
+Public Function CopyRs(RsSrc As Recordset) As Recordset
+Dim Stm As New ADODB.Stream, RsDst As New Recordset
+    RsSrc.Save Stm, adPersistADTG
+    RsDst.Open Stm
+Set CopyRs = RsDst
+End Function
